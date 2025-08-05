@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // FIRST OF ALL, YOU NEED TO GET THE API AND RENDER THE IMAGES WITH THE NAMES
 
@@ -40,38 +40,68 @@ import { useState } from "react";
 // }
 
 export function RenderContainer() {
+    const [pokemon, setPokemon] = useState([]);
     const apiUrl = "https://pokeapi.co/api/v2/pokemon/";
 
-    async function fetchData() {
-        try {
-            const response = await fetch(apiUrl);
-            const data = await response.json();
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
 
-            const pokemonArr = [];
-            for (let index = 0; index < 10; index++) {
-                pokemonArr.push(data.results[index])
+                const basicPokemonArr = [];
+                for (let index = 0; index < 10; index++) {
+                    basicPokemonArr.push(data.results[index])
+                }
+
+
+                fetchDetailedData(basicPokemonArr);
+            } catch (error) {
+                console.error(error);
             }
-            ("Call renderPokemonArr");
-            ("renderPokemonArr", renderPokemonArr);
-
-            renderPokemonArr(pokemonArr);
-        } catch (error) {
-            console.error(error);
         }
-    }
 
-    fetchData();
+        function fetchDetailedData(arr) {
+            const detailedPokemonArr = [];
 
-    function renderPokemonArr(arr){
-        ("Running renderPokemonArr");
-        return(
-            <div id="pokemon-container">
-                {arr.map(el => {
-                    return(
-                        <p>{el}</p>
-                    )
-                })}
-            </div>
-        )
-    }
+            arr.map(el => {
+                async function fetchAllData() {
+                    try {
+                        const url = el.url;
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        detailedPokemonArr.push(data);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+
+                fetchAllData();
+            })
+        }
+
+        fetchData();
+    }, []);
+
+    return (
+        <div id="pokemon-container">
+            {pokemon.map(el => {
+                return (
+                    <p>{el.name}</p>
+                )
+            })}
+        </div>
+    )
 }
+
+// export function RenderPokemonArr(arr){
+//         return(
+//             <div id="pokemon-container">
+//                 {arr.map(el => {
+//                     return(
+//                         <p>{el}</p>
+//                     )
+//                 })}
+//             </div>
+//         )
+//     }
