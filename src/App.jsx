@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
 
-// FIRST OF ALL, YOU NEED TO GET THE API AND RENDER THE IMAGES WITH THE NAMES
+// WORK ON THE POKEMON COMPONENT ONCLICK FUNCTION
+// BUILD THE FUNCTIONALITY FOR THE GAME
+
+function PokemonComponent({image, name}) {
+    return (
+        <div className="pokemon-card" onClick={() => {console.log("You clicked me!")}}>
+            <img src={image}></img>
+            <h2>{name}</h2>
+        </div>
+    )
+}
 
 export function RenderContainer() {
     const [pokemon, setPokemon] = useState([]);
@@ -11,7 +21,7 @@ export function RenderContainer() {
             try {
                 const response = await fetch(apiUrl);
                 const data = await response.json();
-                const selectedData = data.results.slice(0, 10)
+                const selectedData = data.results.slice(0, 12)
 
                 fetchAllIndividualAPI(selectedData);
             } catch (error) {
@@ -33,7 +43,18 @@ export function RenderContainer() {
             const response = arr.map(el => fetchIndividualAPI(el))
             const data = await Promise.all(response);
 
-            console.log("After:", data);
+            setPokemon(data.map(el => {
+                // console.log("Name and image:", el.name, el.sprites.front_default);
+
+                return {
+                    name: el.name,
+                    image: el.sprites.front_default,
+                    key: crypto.randomUUID()
+                }
+            }))
+
+            // console.log("After:", data);
+            // console.log("State:", pokemon);
         }
 
         fetchMainAPI();
@@ -42,8 +63,14 @@ export function RenderContainer() {
     return (
         <div id="pokemon-container">
             {pokemon.map(el => {
+                console.log("Render image is", el.image);
+
                 return (
-                    <p>{el.name}</p>
+                    <PokemonComponent
+                        name={el.name}
+                        image={el.image}
+                        key={el.key}
+                    />
                 )
             })}
         </div>
