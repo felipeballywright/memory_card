@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 // WORK ON THE POKEMON COMPONENT ONCLICK FUNCTION
 // BUILD THE FUNCTIONALITY FOR THE GAME
 
-function PokemonComponent({image, name}) {
+function PokemonComponent({ image, name }) {
     return (
-        <div className="pokemon-card" onClick={() => {console.log("You clicked me!")}}>
+        <div className="pokemon-card" onClick={() => { console.log("You clicked me!") }}>
             <img src={image}></img>
             <h2>{name}</h2>
         </div>
@@ -42,29 +42,32 @@ export function RenderContainer() {
         async function fetchAllIndividualAPI(arr) {
             const response = arr.map(el => fetchIndividualAPI(el))
             const data = await Promise.all(response);
+            const shuffledData = await Promise.all(shuffleArray(data));
+            console.log("shuffledData", shuffledData)
 
-            setPokemon(data.map(el => {
-                // console.log("Name and image:", el.name, el.sprites.front_default);
-
+            setPokemon(shuffledData.map(el => {
                 return {
                     name: el.name,
                     image: el.sprites.front_default,
                     key: crypto.randomUUID()
                 }
             }))
-
-            // console.log("After:", data);
-            // console.log("State:", pokemon);
         }
 
         fetchMainAPI();
     }, []);
 
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     return (
         <div id="pokemon-container">
             {pokemon.map(el => {
-                console.log("Render image is", el.image);
-
                 return (
                     <PokemonComponent
                         name={el.name}
