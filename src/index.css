@@ -47,3 +47,7 @@ body {
     background-color: gainsboro;
     border-radius: 1rem;
 }
+
+.pokemon-card:hover{
+    cursor: pointer;
+}

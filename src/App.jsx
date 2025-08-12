@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 // WORK ON THE POKEMON COMPONENT ONCLICK FUNCTION
 // BUILD THE FUNCTIONALITY FOR THE GAME
 
-function PokemonComponent({ image, name }) {
+function PokemonComponent({ image, name, selectFunction, allInfo }) {
     return (
-        <div className="pokemon-card" onClick={() => { console.log("You clicked me!") }}>
+        <div className="pokemon-card" onClick={() => selectFunction(allInfo)}>
             <img src={image}></img>
             <h2>{name}</h2>
         </div>
@@ -14,6 +14,9 @@ function PokemonComponent({ image, name }) {
 
 export function RenderContainer() {
     const [pokemon, setPokemon] = useState([]);
+    const [currentPokemon, setCurrentPokemon] = useState(
+        { key: "", score: 0 }
+    );
     const apiUrl = "https://pokeapi.co/api/v2/pokemon/";
 
     useEffect(() => {
@@ -43,7 +46,7 @@ export function RenderContainer() {
             const response = arr.map(el => fetchIndividualAPI(el))
             const data = await Promise.all(response);
             const shuffledData = await Promise.all(shuffleArray(data));
-            console.log("shuffledData", shuffledData)
+            // console.log("shuffledData", shuffledData)
 
             setPokemon(shuffledData.map(el => {
                 return {
@@ -53,9 +56,8 @@ export function RenderContainer() {
                 }
             }))
         }
-
         fetchMainAPI();
-    }, []);
+    }, [currentPokemon]);
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -65,6 +67,20 @@ export function RenderContainer() {
         return array;
     }
 
+    function handlePokemonSelect(selection) {
+        console.log("currentPokemon key:", currentPokemon);
+
+        if (currentPokemon.key === "") {
+            setCurrentPokemon((prev) => {
+                return { ...prev, key: selection.key }
+            })
+        } else if (currentPokemon.key === selection.key) {
+            setCurrentPokemon((prev) => {
+                return { ...prev, score: prev.score + 1 }
+            })
+        }
+    }
+
     return (
         <div id="pokemon-container">
             {pokemon.map(el => {
@@ -72,6 +88,8 @@ export function RenderContainer() {
                     <PokemonComponent
                         name={el.name}
                         image={el.image}
+                        selectFunction={(el) => { handlePokemonSelect(el) }}
+                        allInfo={el}
                         key={el.key}
                     />
                 )
