@@ -15,7 +15,7 @@ function PokemonComponent({ image, name, selectFunction, allInfo }) {
 export function RenderContainer() {
     const [pokemon, setPokemon] = useState([]);
     const [currentPokemon, setCurrentPokemon] = useState(
-        { key: "", score: 0 }
+        { name: "", score: 0, highestScore: 0 }
     );
     const apiUrl = "https://pokeapi.co/api/v2/pokemon/";
 
@@ -32,16 +32,6 @@ export function RenderContainer() {
             }
         }
 
-        async function fetchIndividualAPI(obj) {
-            try {
-                const response = await fetch(obj.url);
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
         async function fetchAllIndividualAPI(arr) {
             const response = arr.map(el => fetchIndividualAPI(el))
             const data = await Promise.all(response);
@@ -52,10 +42,22 @@ export function RenderContainer() {
                 return {
                     name: el.name,
                     image: el.sprites.front_default,
-                    key: crypto.randomUUID()
+                    key: el.id
                 }
             }))
         }
+
+        async function fetchIndividualAPI(obj) {
+            try {
+                const response = await fetch(obj.url);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+
         fetchMainAPI();
     }, [currentPokemon]);
 
@@ -68,13 +70,14 @@ export function RenderContainer() {
     }
 
     function handlePokemonSelect(selection) {
-        console.log("currentPokemon key:", currentPokemon);
+        console.log("currentPokemon name:", currentPokemon);
+        // highestScore: prev.highestScore > score ? highestScore : score
 
-        if (currentPokemon.key === "") {
+        if (currentPokemon.name === "") {
             setCurrentPokemon((prev) => {
-                return { ...prev, key: selection.key }
+                return { name: selection.name, score: 1 }
             })
-        } else if (currentPokemon.key === selection.key) {
+        } else if (currentPokemon.name === selection.name) {
             setCurrentPokemon((prev) => {
                 return { ...prev, score: prev.score + 1 }
             })
