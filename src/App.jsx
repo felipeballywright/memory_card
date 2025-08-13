@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
-// WORK ON THE POKEMON COMPONENT ONCLICK FUNCTION
-// BUILD THE FUNCTIONALITY FOR THE GAME
+// Separate the logic into (fetch data) and (re-shuffle local copy of the fetched data)
 
 function PokemonComponent({ image, name, selectFunction, allInfo }) {
     return (
@@ -13,10 +12,13 @@ function PokemonComponent({ image, name, selectFunction, allInfo }) {
 }
 
 export function RenderContainer() {
+    const fetchedPokemonList = [];
     const [pokemon, setPokemon] = useState([]);
     const [currentPokemon, setCurrentPokemon] = useState(
-        { name: "", score: 0, highestScore: 0 }
+        { name: "", score: 0 }
     );
+    const [highestScore, setHighestScore] = useState(0)
+
     const apiUrl = "https://pokeapi.co/api/v2/pokemon/";
 
     useEffect(() => {
@@ -35,16 +37,8 @@ export function RenderContainer() {
         async function fetchAllIndividualAPI(arr) {
             const response = arr.map(el => fetchIndividualAPI(el))
             const data = await Promise.all(response);
-            const shuffledData = await Promise.all(shuffleArray(data));
-            // console.log("shuffledData", shuffledData)
 
-            setPokemon(shuffledData.map(el => {
-                return {
-                    name: el.name,
-                    image: el.sprites.front_default,
-                    key: el.id
-                }
-            }))
+            fetchedPokemonList.push(data);
         }
 
         async function fetchIndividualAPI(obj) {
@@ -59,7 +53,11 @@ export function RenderContainer() {
 
 
         fetchMainAPI();
-    }, [currentPokemon]);
+    }, []);
+
+    useEffect(() => {
+        setPokemon(() => shuffleArray(fetchedPokemonList))
+    }, [currentPokemon])
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -69,34 +67,56 @@ export function RenderContainer() {
         return array;
     }
 
+    useEffect(() => {
+        if (currentPokemon.score > highestScore) {
+            setHighestScore(currentPokemon.score)
+        }
+    }, [currentPokemon.score])
+
     function handlePokemonSelect(selection) {
         console.log("currentPokemon name:", currentPokemon);
         // highestScore: prev.highestScore > score ? highestScore : score
 
         if (currentPokemon.name === "") {
-            setCurrentPokemon((prev) => {
-                return { name: selection.name, score: 1 }
+            setCurrentPokemon(() => {
+                return { name: selection.name, score: 0 }
             })
         } else if (currentPokemon.name === selection.name) {
             setCurrentPokemon((prev) => {
                 return { ...prev, score: prev.score + 1 }
             })
+        } else {
+            setCurrentPokemon(() => {
+                return { name: "", score: 0 }
+            })
         }
     }
 
     return (
-        <div id="pokemon-container">
-            {pokemon.map(el => {
-                return (
-                    <PokemonComponent
-                        name={el.name}
-                        image={el.image}
-                        selectFunction={(el) => { handlePokemonSelect(el) }}
-                        allInfo={el}
-                        key={el.key}
-                    />
-                )
-            })}
-        </div>
+        <>
+            <header id='header'>
+                <div id="header-left">
+                    <h1>Pokemon Memory Game</h1>
+                    <p>Get points by clicking on an image but don't click on any more than once!</p>
+                </div>
+                <div id="header-right">
+                    <h3>Current score: {currentPokemon.score}</h3>
+                    <h3>Highest score: {highestScore}</h3>
+                </div>
+            </header>
+            <div id="pokemon-container">
+                {pokemon.map(el => {
+                    return (
+                        <PokemonComponent
+                            name={el.name}
+                            image={el.image}
+                            selectFunction={(el) => { handlePokemonSelect(el) }}
+                            allInfo={el}
+                            key={el.key}
+                        />
+                    )
+                })}
+            </div>
+        </>
     )
 }
