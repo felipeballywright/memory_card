@@ -12,10 +12,10 @@ function PokemonComponent({ image, name, selectFunction, allInfo }) {
 }
 
 export function RenderContainer() {
-    const fetchedPokemonList = [];
+    const [fetchedPokemonList, setFetchedPokemonList] = useState([]);
     const [pokemon, setPokemon] = useState([]);
     const [currentPokemon, setCurrentPokemon] = useState(
-        { name: "", score: 0 }
+        { name: "", score: "0" }
     );
     const [highestScore, setHighestScore] = useState(0)
 
@@ -37,8 +37,17 @@ export function RenderContainer() {
         async function fetchAllIndividualAPI(arr) {
             const response = arr.map(el => fetchIndividualAPI(el))
             const data = await Promise.all(response);
+            console.log("data", data);
+            
+            const dataArr = data.map(el => {
+                return{
+                    name: el.name,
+                    image: el.sprites.front_default,
+                    key: el.id
+                }
+            })
 
-            fetchedPokemonList.push(data);
+            setFetchedPokemonList(dataArr);
         }
 
         async function fetchIndividualAPI(obj) {
@@ -56,8 +65,8 @@ export function RenderContainer() {
     }, []);
 
     useEffect(() => {
-        setPokemon(() => shuffleArray(fetchedPokemonList))
-    }, [currentPokemon])
+        setPokemon(() => shuffleArray([...fetchedPokemonList]))
+    }, [fetchedPokemonList, currentPokemon.score])
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -75,7 +84,6 @@ export function RenderContainer() {
 
     function handlePokemonSelect(selection) {
         console.log("currentPokemon name:", currentPokemon);
-        // highestScore: prev.highestScore > score ? highestScore : score
 
         if (currentPokemon.name === "") {
             setCurrentPokemon(() => {
